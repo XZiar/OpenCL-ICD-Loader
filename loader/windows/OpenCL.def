@@ -28,6 +28,9 @@ EXPORTS
 ; 3. Functions within a block are sorted alphabetically.
 ;
 
+; Hacked API
+GetOpenCLIcdLoaderDllNames
+
 ; OpenCL 1.0 API
 clBuildProgram
 clCreateBuffer

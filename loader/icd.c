@@ -24,11 +24,60 @@
 #endif // defined(CL_ENABLE_LAYERS)
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 KHRicdVendor *khrIcdVendors = NULL;
 #if defined(CL_ENABLE_LAYERS)
 struct KHRLayer *khrFirstLayer = NULL;
 #endif // defined(CL_ENABLE_LAYERS)
+
+struct HackDllNames
+{
+    const char*             Name;
+    size_t                  Size;
+    struct HackDllNames*    Next;
+};
+struct HackDllNames* IcdDlls    = NULL;
+struct HackDllNames* NonIcdDlls = NULL;
+
+void AttachDll(struct HackDllNames** link, const char* name)
+{
+    const size_t len = strlen(name);
+    char* dst = (char*)malloc(len + 1);
+    if (dst)
+    {
+        memcpy(dst, name, len * sizeof(char));
+        dst[len] = '\0';
+        struct HackDllNames* item = (struct HackDllNames*)malloc(sizeof(**link));
+        if (item) 
+        {
+            item->Name = dst;
+            item->Size = len + 1;
+            item->Next = *link;
+            *link = item;
+            return;
+        }
+        KHR_ICD_TRACE("failed to allocate memory for HackDllNames\n");
+        free(dst);
+    }
+}
+
+size_t GetOpenCLIcdLoaderDllNames(bool isIcd, char* buffer)
+{
+    khrIcdInitialize();
+    struct HackDllNames* link = isIcd ? IcdDlls : NonIcdDlls;
+    size_t chCount = 0;
+    while (link)
+    {
+        if (buffer)
+        {
+            memcpy(buffer + chCount, link->Name, link->Size * sizeof(char));
+        }
+        chCount += link->Size;
+        link = link->Next;
+    }
+    return chCount;
+}
 
 // entrypoint to initialize the ICD and add all vendors
 void khrIcdInitialize(void)
@@ -47,6 +96,7 @@ void khrIcdVendorAdd(const char *libraryName)
     cl_uint platformCount = 0;
     cl_platform_id *platforms = NULL;
     KHRicdVendor *vendorIterator = NULL;
+    int stage = 0;
 
     // require that the library name be valid
     if (!libraryName) 
@@ -80,6 +130,7 @@ void khrIcdVendorAdd(const char *libraryName)
         KHR_ICD_TRACE("failed to get function address clGetExtensionFunctionAddress\n");
         goto Done;
     }
+    stage++; // it is a ocl dll
 
     // use that function to get the clIcdGetPlatformIDsKHR function pointer
     p_clIcdGetPlatformIDs = (pfn_clIcdGetPlatformIDs)(size_t)p_clGetExtensionFunctionAddress("clIcdGetPlatformIDsKHR");
@@ -110,6 +161,7 @@ void khrIcdVendorAdd(const char *libraryName)
         goto Done;
     }
 
+    stage++; // it is an icd ocl dll
     // for each platform, add it
     for (i = 0; i < platformCount; ++i)
     {
@@ -184,6 +236,11 @@ void khrIcdVendorAdd(const char *libraryName)
     }
 
 Done:
+
+    if (stage == 2)
+        AttachDll(&IcdDlls,    libraryName);
+    else if (stage == 1)
+        AttachDll(&NonIcdDlls, libraryName);
 
     if (library)
     {

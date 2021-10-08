@@ -16,6 +16,14 @@
  * OpenCL is a trademark of Apple Inc. used under license by Khronos.
  */
 
+OPENCL_0.1 {
+    global:
+        GetOpenCLIcdLoaderDllNames;
+    local:
+        /* Everything else is local to ICD. */
+        *;
+};
+
 OPENCL_1.0 {
     global:
         clBuildProgram;
@@ -92,11 +100,7 @@ OPENCL_1.0 {
         clSetKernelArg;
         clUnloadCompiler;
         clWaitForEvents;
-
-    local:
-        /* Everything else is local to ICD. */
-        *;
-};
+} OPENCL_0.1;
 
 OPENCL_1.1 {
     global:
