@@ -27,6 +27,8 @@
 #include <stdbool.h>
 
 KHRicdVendor *khrIcdVendors = NULL;
+int khrEnableTrace = 0;
+
 #if defined(CL_ENABLE_LAYERS)
 struct KHRLayer *khrFirstLayer = NULL;
 #endif // defined(CL_ENABLE_LAYERS)
@@ -79,9 +81,23 @@ size_t GetOpenCLIcdLoaderDllNames(bool isIcd, char* buffer)
     return chCount;
 }
 
+// entrypoint to check and initialize trace.
+void khrIcdInitializeTrace(void)
+{
+    char *enableTrace = khrIcd_getenv("OCL_ICD_ENABLE_TRACE");
+    if (enableTrace && (strcmp(enableTrace, "True") == 0 ||
+            strcmp(enableTrace, "true") == 0 ||
+            strcmp(enableTrace, "T") == 0 ||
+            strcmp(enableTrace, "1") == 0))
+    {
+        khrEnableTrace = 1;
+    }
+}
+
 // entrypoint to initialize the ICD and add all vendors
 void khrIcdInitialize(void)
 {
+    khrIcdInitializeTrace();
     // enumerate vendors present on the system
     khrIcdOsVendorsEnumerateOnce();
 }
