@@ -85,13 +85,7 @@ struct KHRicdVendorRec
 // the global state
 extern KHRicdVendor * khrIcdVendors;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-    extern int khrEnableTrace;
-#ifdef __cplusplus
-}
-#endif
+extern int khrEnableTrace;
 
 #if defined(CL_ENABLE_LAYERS)
 /*
@@ -125,6 +119,9 @@ extern struct _cl_icd_dispatch khrMasterDispatch;
 // dispatch function which may be a valid first call into the
 // API (e.g, getPlatformIDs, etc).
 void khrIcdInitialize(void);
+
+// entrypoint to check and initialize trace.
+void khrIcdInitializeTrace(void);
 
 // go through the list of vendors (in /etc/OpenCL.conf or through 
 // the registry) and call khrIcdVendorAdd for each vendor encountered

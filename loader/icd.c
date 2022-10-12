@@ -97,7 +97,6 @@ void khrIcdInitializeTrace(void)
 // entrypoint to initialize the ICD and add all vendors
 void khrIcdInitialize(void)
 {
-    khrIcdInitializeTrace();
     // enumerate vendors present on the system
     khrIcdOsVendorsEnumerateOnce();
 }
