@@ -109,7 +109,7 @@ static WinLayer* pWinLayerBegin;
 static WinLayer* pWinLayerEnd;
 static WinLayer* pWinLayerCapacity;
 
-static int compareLayer(const void *a, const void *b)
+static int __cdecl compareLayer(const void *a, const void *b)
 {
     return ((WinLayer *)a)->priority < ((WinLayer *)b)->priority ? -1 :
            ((WinLayer *)a)->priority > ((WinLayer *)b)->priority ? 1 : 0;
@@ -273,7 +273,7 @@ BOOL CALLBACK khrIcdOsVendorsEnumerate(PINIT_ONCE InitOnce, PVOID Parameter, PVO
     }
 
     // Add adapters according to DXGI's preference order
-    HMODULE hDXGI = LoadLibrary("dxgi.dll");
+    HMODULE hDXGI = LoadLibraryA("dxgi.dll");
     if (hDXGI)
     {
         IDXGIFactory* pFactory = NULL;
@@ -423,7 +423,7 @@ void *khrIcdOsLibraryLoad(const char *libraryName)
     }
     if (!hTemp)
     {
-        KHR_ICD_TRACE("Failed to load driver. Windows error code is %d.\n", GetLastError());
+        KHR_ICD_TRACE("Failed to load driver. Windows error code is %"PRIuDW".\n", GetLastError());
     }
     return (void*)hTemp;
 }
